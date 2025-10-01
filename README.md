@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Rufus: The Reliable USB Formatting Utility
 ==========================================
 
@@ -62,3 +63,7 @@ Enhancements/Bugs
 
 Please use the [GitHub issue tracker](https://github.com/pbatard/rufus/issues)
 for reporting problems or suggesting new features.
+=======
+# Rufus-RU-BY
+Модифицированный форк Rufus со встроенной поддержкой Fido-RU/BY. Включает обход геоблокировок и исправления для загрузки Windows.
+>>>>>>> 947583f3b20f0d23bb458e979548765ad9582704
