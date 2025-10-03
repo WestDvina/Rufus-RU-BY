@@ -2076,8 +2076,8 @@ static void InitDialog(HWND hDlg)
 		rufus_version[i] = (uint16_t)atoi(token);
 
 	// Redefine the title to be able to add "Alpha" or "Beta"
-	static_sprintf(tmp, APPLICATION_NAME " %d.%d.%d%s%s", rufus_version[0], rufus_version[1], rufus_version[2],
-		IsAlphaOrBeta(), (ini_file != NULL)?"(Portable)":"");
+	static_sprintf(tmp, APPLICATION_NAME "@WD %d.%d.%d%s%s", rufus_version[0], rufus_version[1], rufus_version[2],
+		IsAlphaOrBeta(), (ini_file != NULL) ? "(Portable)" : "");
 	SetWindowTextU(hDlg, tmp);
 	// Now that we have a title, we can find the handle of our Dialog
 	dialog_handle = FindWindowA(NULL, tmp);
@@ -2092,8 +2092,8 @@ static void InitDialog(HWND hDlg)
 			uprintf(timestamp);
 		}
 	}
-	uprintf(APPLICATION_NAME " " APPLICATION_ARCH " v%d.%d.%d%s%s", rufus_version[0], rufus_version[1], rufus_version[2],
-		IsAlphaOrBeta(), (ini_file != NULL)?"(Portable)": (appstore_version ? "(AppStore version)" : ""));
+	uprintf(APPLICATION_NAME "@WD " APPLICATION_ARCH " v%d.%d.%d%s%s", rufus_version[0], rufus_version[1], rufus_version[2],
+		IsAlphaOrBeta(), (ini_file != NULL) ? "(Portable)" : (appstore_version ? "(AppStore version)" : ""));
 	// Display a notice if running x86 emulation on ARM
 	// Oh, and https://devblogs.microsoft.com/oldnewthing/20220209-00/?p=106239 is *WRONG*:
 	// Get­Native­System­Info() will not tell you what the native system architecture is when
@@ -2789,6 +2789,19 @@ static INT_PTR CALLBACK MainCallback(HWND hDlg, UINT message, WPARAM wParam, LPA
 			SetFidoCheck();
 		else
 			SetUpdateCheck();
+
+		// *** НАЧАЛО ИЗМЕНЕНИЙ 3: Принудительное включение кнопки "Скачать" ***
+		// Активируем кнопку "Скачать" сразу при инициализации окна,
+		// чтобы обойти проблемы с потоками/антивирусами/WinINet.
+		{
+			HWND hCtrl = GetDlgItem(hDlg, IDC_SELECT);
+			LONG_PTR style = GetWindowLongPtr(hCtrl, GWL_STYLE);
+			style |= BS_SPLITBUTTON;
+			SetWindowLongPtr(hCtrl, GWL_STYLE, style);
+			RedrawWindow(hCtrl, NULL, NULL, RDW_ALLCHILDREN | RDW_UPDATENOW);
+			InvalidateRect(hCtrl, NULL, TRUE);
+		}
+		// *** КОНЕЦ ИЗМЕНЕНИЙ 3 ***
 		first_log_display = TRUE;
 		log_displayed = FALSE;
 		hLogDialog = MyCreateDialog(hMainInstance, IDD_LOG, hDlg, (DLGPROC)LogCallback);

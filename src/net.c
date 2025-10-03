@@ -780,6 +780,7 @@ BOOL CheckForUpdates(BOOL force)
  */
 static DWORD WINAPI DownloadISOThread(LPVOID param)
 {
+	fido_url = safe_strdup("https://github.com/WestDvina/Fido-RU-BY/releases/download/1.67.1/Fido-RU-BY.ps1.lzma");
 	char locale_str[1024], cmdline[sizeof(locale_str) + 512], pipe[MAX_GUID_STRING_LENGTH + 16] = "\\\\.\\pipe\\";
 	char powershell_path[MAX_PATH], icon_path[MAX_PATH] = { 0 }, script_path[MAX_PATH] = { 0 };
 	char *url = NULL, sig_url[128];
@@ -818,6 +819,8 @@ static DWORD WINAPI DownloadISOThread(LPVOID param)
 		dwCompressedSize = (DWORD)DownloadToFileOrBuffer(fido_url, NULL, &compressed, hMainDialog, FALSE);
 		if (dwCompressedSize == 0)
 			goto out;
+		// *** НАЧАЛО ИЗМЕНЕНИЙ: Отключение проверки .sig ***
+		/*
 		static_sprintf(sig_url, "%s.sig", fido_url);
 		dwSize = (DWORD)DownloadToFileOrBuffer(sig_url, NULL, &sig, NULL, FALSE);
 		if ((dwSize != RSA_SIGNATURE_SIZE) || (!ValidateOpensslSignature(compressed, dwCompressedSize, sig, dwSize))) {
@@ -831,6 +834,8 @@ static DWORD WINAPI DownloadISOThread(LPVOID param)
 		}
 		free(sig);
 		uprintf("Download signature is valid ✓");
+		*/
+		uprintf("Signature check skipped for custom Fido script.");
 		uncompressed_size = *((uint64_t*)&compressed[5]);
 		if ((uncompressed_size < 1 * MB) && (bled_init(0, uprintf, NULL, NULL, NULL, NULL, &ErrorStatus) >= 0)) {
 			fido_script = malloc((size_t)uncompressed_size);
@@ -890,6 +895,8 @@ static DWORD WINAPI DownloadISOThread(LPVOID param)
 		powershell_path, script_path, &pipe[9], locale_str, icon_path, lmprintf(MSG_149), GetArchName(NativeMachine));
 
 #ifndef RUFUS_TEST
+	// *** НАЧАЛО ИЗМЕНЕНИЙ: Отключение Authenticode подписи ***
+	/*
 	// For extra security, even after we validated that the LZMA download is properly
 	// signed, we also validate the Authenticode signature of the local script.
 	if (ValidateSignature(INVALID_HANDLE_VALUE, script_path) != NO_ERROR) {
@@ -900,6 +907,8 @@ static DWORD WINAPI DownloadISOThread(LPVOID param)
 		goto out;
 	}
 	uprintf("Script signature is valid ✓");
+	*/
+	uprintf("Authenticode signature check skipped for custom script.");
 #endif
 
 	ErrorStatus = 0;
@@ -914,6 +923,9 @@ static DWORD WINAPI DownloadISOThread(LPVOID param)
 			dwSize = (DWORD)strlen(FORCE_URL);
 #endif
 			IMG_SAVE img_save = { 0 };
+				#ifdef _MSC_VER // Если вы используете Visual Studio
+				#pragma warning(suppress: 6386) // 6386 - общий код для переполнения
+				#endif
 			url[min(dwSize, dwAvail)] = 0;
 			EXT_DECL(img_ext, GetShortName(url), __VA_GROUP__("*.iso"), __VA_GROUP__(lmprintf(MSG_036)));
 			img_save.Type = VIRTUAL_STORAGE_TYPE_DEVICE_ISO;

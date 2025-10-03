@@ -1518,88 +1518,95 @@ INT_PTR CALLBACK UpdateCallback(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 /*
  * Use a thread to enable the download button as this may be a lengthy
  * operation due to the external download check.
+ *
+ * *** ЭТА ФУНКЦИЯ ЗАКОММЕНТИРОВАНА В FORK'E ДЛЯ ОТКЛЮЧЕНИЯ АВТОМАТИЧЕСКОЙ ПРОВЕРКИ FIDO ***
+ * *** THE FUNCTION IS COMMENTED OUT IN THE FORK TO DISABLE AUTOMATIC FIDO CHECK ***
  */
-static DWORD WINAPI CheckForFidoThread(LPVOID param)
-{
-	static BOOL is_active = FALSE;
-	LONG_PTR style;
-	char* loc = NULL;
-	uint32_t i;
-	uint64_t len;
-	HWND hCtrl;
+ /*
+ static DWORD WINAPI CheckForFidoThread(LPVOID param)
+ {
+	 static BOOL is_active = FALSE;
+	 LONG_PTR style;
+	 char* loc = NULL;
+	 uint32_t i;
+	 uint64_t len;
+	 HWND hCtrl;
 
-	// Because a user may switch language before this thread has completed,
-	// we need to detect concurrency.
-	// Checking on a static boolean is more than good enough for our purpose.
-	if (is_active)
-		return -1;
-	is_active = TRUE;
-	safe_free(fido_url);
-	safe_free(sbat_entries);
-	safe_free(sbat_level_txt);
-	safe_free(sb_active_txt);
-	safe_free(sb_revoked_txt);
+	 // Because a user may switch language before this thread has completed,
+	 // we need to detect concurrency.
+	 // Checking on a static boolean is more than good enough for our purpose.
+	 if (is_active)
+		 return -1;
+	 is_active = TRUE;
+	 safe_free(fido_url);
+	 safe_free(sbat_entries);
+	 safe_free(sbat_level_txt);
+	 safe_free(sb_active_txt);
+	 safe_free(sb_revoked_txt);
 
-	// Get the latest sbat_level.txt data while we're poking the network for Fido.
-	len = DownloadToFileOrBuffer(RUFUS_URL "/sbat_level.txt", NULL, (BYTE**)&sbat_level_txt, NULL, FALSE);
-	if (len != 0 && len < 1 * KB) {
-		sbat_entries = GetSbatEntries(sbat_level_txt);
-		if (sbat_entries != NULL) {
-			for (i = 0; sbat_entries[i].product != NULL; i++);
-			if (i > 0)
-				uprintf("Found %d additional UEFI revocation filters from remote SBAT", i);
-		}
-	}
+	 // Get the latest sbat_level.txt data while we're poking the network for Fido.
+	 len = DownloadToFileOrBuffer(RUFUS_URL "/sbat_level.txt", NULL, (BYTE**)&sbat_level_txt, NULL, FALSE);
+	 if (len != 0 && len < 1 * KB) {
+		 sbat_entries = GetSbatEntries(sbat_level_txt);
+		 if (sbat_entries != NULL) {
+			 for (i = 0; sbat_entries[i].product != NULL; i++);
+			 if (i > 0)
+				 uprintf("Found %d additional UEFI revocation filters from remote SBAT", i);
+		 }
+	 }
 
-	// Get the active Secure Boot certificate thumbprints
-	len = DownloadToFileOrBuffer(RUFUS_URL "/sb_active.txt", NULL, (BYTE**)&sb_active_txt, NULL, FALSE);
-	if (len != 0 && len < 1 * KB) {
-		sb_active_certs = GetThumbprintEntries(sb_active_txt);
-		if (sb_active_certs != NULL) {
-			uprintf("Found %d active Secure Boot certificate entries from remote", sb_active_certs->count);
-		}
-	}
+	 // Get the active Secure Boot certificate thumbprints
+	 len = DownloadToFileOrBuffer(RUFUS_URL "/sb_active.txt", NULL, (BYTE**)&sb_active_txt, NULL, FALSE);
+	 if (len != 0 && len < 1 * KB) {
+		 sb_active_certs = GetThumbprintEntries(sb_active_txt);
+		 if (sb_active_certs != NULL) {
+			 uprintf("Found %d active Secure Boot certificate entries from remote", sb_active_certs->count);
+		 }
+	 }
 
-	// Get the revoked Secure Boot certificate thumbprints
-	len = DownloadToFileOrBuffer(RUFUS_URL "/sb_revoked.txt", NULL, (BYTE**)&sb_revoked_txt, NULL, FALSE);
-	if (len != 0 && len < 1 * KB) {
-		sb_revoked_certs = GetThumbprintEntries(sb_revoked_txt);
-		if (sb_revoked_certs != NULL) {
-			uprintf("Found %d revoked Secure Boot certificate entries from remote", sb_revoked_certs->count);
-		}
-	}
+	 // Get the revoked Secure Boot certificate thumbprints
+	 len = DownloadToFileOrBuffer(RUFUS_URL "/sb_revoked.txt", NULL, (BYTE**)&sb_revoked_txt, NULL, FALSE);
+	 if (len != 0 && len < 1 * KB) {
+		 sb_revoked_certs = GetThumbprintEntries(sb_revoked_txt);
+		 if (sb_revoked_certs != NULL) {
+			 uprintf("Found %d revoked Secure Boot certificate entries from remote", sb_revoked_certs->count);
+		 }
+	 }
 
-	// Get the Fido URL from parsing a 'Fido.ver' on our server. This enables the use of different
-	// Fido versions from different versions of Rufus, if needed, as opposed to always downloading
-	// the latest release from GitHub, which may contain incompatible changes...
-	len = DownloadToFileOrBuffer(RUFUS_URL "/Fido.ver", NULL, (BYTE**)&loc, NULL, FALSE);
-	if ((len == 0) || (len >= 4 * KB))
-		goto out;
+	 // Get the Fido URL from parsing a 'Fido.ver' on our server. This enables the use of different
+	 // Fido versions from different versions of Rufus, if needed, as opposed to always downloading
+	 // the latest release from GitHub, which may contain incompatible changes...
+	 len = DownloadToFileOrBuffer(RUFUS_URL "/Fido.ver", NULL, (BYTE**)&loc, NULL, FALSE);
+	 if ((len == 0) || (len >= 4 * KB))
+		 goto out;
 
-	len++;	// DownloadToFileOrBuffer allocated an extra NUL character if needed
-	fido_url = get_token_data_buffer(FIDO_VERSION, 1, loc, (size_t)len);
-	if (safe_strncmp(fido_url, "https://github.com/pbatard/Fido", 31) != 0) {
-		uprintf("WARNING: Download script URL %s is invalid ✗", fido_url);
-		safe_free(fido_url);
-		goto out;
-	}
-	if (IsDownloadable(fido_url)) {
-		hCtrl = GetDlgItem(hMainDialog, IDC_SELECT);
-		style = GetWindowLongPtr(hCtrl, GWL_STYLE);
-		style |= BS_SPLITBUTTON;
-		SetWindowLongPtr(hCtrl, GWL_STYLE, style);
-		RedrawWindow(hCtrl, NULL, NULL, RDW_ALLCHILDREN | RDW_UPDATENOW);
-		InvalidateRect(hCtrl, NULL, TRUE);
-	}
+	 len++;	// DownloadToFileOrBuffer allocated an extra NUL character if needed
+	 fido_url = get_token_data_buffer(FIDO_VERSION, 1, loc, (size_t)len);
+	 if (safe_strncmp(fido_url, "https://github.com/pbatard/Fido", 31) != 0) {
+		 uprintf("WARNING: Download script URL %s is invalid ✗", fido_url);
+		 safe_free(fido_url);
+		 goto out;
+	 }
+	 if (IsDownloadable(fido_url)) {
+		 hCtrl = GetDlgItem(hMainDialog, IDC_SELECT);
+		 style = GetWindowLongPtr(hCtrl, GWL_STYLE);
+		 style |= BS_SPLITBUTTON;
+		 SetWindowLongPtr(hCtrl, GWL_STYLE, style);
+		 RedrawWindow(hCtrl, NULL, NULL, RDW_ALLCHILDREN | RDW_UPDATENOW);
+		 InvalidateRect(hCtrl, NULL, TRUE);
+	 }
 
-out:
-	safe_free(loc);
-	is_active = FALSE;
-	return 0;
-}
+ out:
+	 safe_free(loc);
+	 is_active = FALSE;
+	 return 0;
+ }
+ */
 
 void SetFidoCheck(void)
 {
+	// *** НАЧАЛО ИЗМЕНЕНИЙ 4: Отключение запуска потока проверки Fido ***
+	/*
 	// Detect if we can use Fido, which depends on:
 	// - Powershell being installed
 	// - Rufus running in AppStore mode or update check being enabled
@@ -1618,6 +1625,8 @@ void SetFidoCheck(void)
 	}
 
 	CreateThread(NULL, 0, CheckForFidoThread, NULL, 0, NULL);
+	*/
+	// *** КОНЕЦ ИЗМЕНЕНИЙ 4 ***
 }
 
 /*
