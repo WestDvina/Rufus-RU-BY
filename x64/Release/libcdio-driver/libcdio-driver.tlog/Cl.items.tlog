@@ -1,0 +1,11 @@
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\disc.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\disc.obj
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\ds.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\ds.obj
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\logging.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\logging.obj
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\memory.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\memory.obj
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\read.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\read.obj
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\sector.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\sector.obj
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\track.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\track.obj
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\utf8.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\utf8.obj
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\util.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\util.obj
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\_cdio_stdio.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\_cdio_stdio.obj
+c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\src\libcdio\driver\_cdio_stream.c;c:\Users\a62i\project\Rufus-RU-BY\rufus_ru_by\x64\Release\libcdio-driver\_cdio_stream.obj
