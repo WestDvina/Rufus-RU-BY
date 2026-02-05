@@ -46,7 +46,8 @@
 
 #define APPLICATION_NAME            "Rufus"
 #define APPLICATION_TITLE           "Rufus RU/BY"
-#define FIDO_RU_BY_URL              "https://github.com/WestDvina/Fido-RU-BY/releases/download/1.67.1/Fido-RU-BY.ps1.lzma"
+#define RUFUS_RU_BY                 1	/* RU/BY fork: disable signature checks */
+#define FIDO_RU_BY_URL              "https://github.com/WestDvina/ISO_win_links/releases/download/v0.4.0/IWID.ps1.lzma"
 #if defined(_M_AMD64)
 #define APPLICATION_ARCH            "x64"
 #elif defined(_M_IX86)

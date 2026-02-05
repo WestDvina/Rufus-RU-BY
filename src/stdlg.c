@@ -1787,7 +1787,7 @@ INT_PTR CALLBACK NewVersionCallback(HWND hDlg, UINT message, WPARAM wParam, LPAR
 			case 2:		// Launch newer version and close this one
 				if ((hThread == NULL) || (!GetExitCodeThread(hThread, &exit_code)) || (exit_code == 0)) {
 					hThread = NULL;
-					EnableWindow(GetDlgItem(hDlg, IDC_DOWNLOAD), FALSE);
+					// RU/BY: Keep Download button enabled so user can retry
 					break;
 				}
 

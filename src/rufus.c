@@ -2068,19 +2068,32 @@ static void InitDialog(HWND hDlg)
 
 	// Create the title bar icon
 	SetTitleBarIcon(hDlg);
-	GetWindowTextA(hDlg, tmp, sizeof(tmp));
-	// Parse version from title: version is the part after the last space (e.g. "4.12.2314")
+	// Parse version from executable VERSIONINFO for correct display (single source of truth)
 	{
-		char *ver_part = strrchr(tmp, ' ');
+		char module_path[MAX_PATH];
+		version_t* pver;
+
 		rufus_version[0] = 4;
 		rufus_version[1] = 12;
 		rufus_version[2] = 0;
-		if (ver_part != NULL) {
-			ver_part++;
-			if (sscanf(ver_part, "%hu.%hu.%hu", &rufus_version[0], &rufus_version[1], &rufus_version[2]) != 3) {
-				rufus_version[0] = 4;
-				rufus_version[1] = 12;
-				rufus_version[2] = 0;
+		if ((GetModuleFileNameU(NULL, module_path, sizeof(module_path)) != 0) &&
+		    (pver = GetExecutableVersion(module_path)) != NULL) {
+			rufus_version[0] = (uint16_t)pver->Major;
+			rufus_version[1] = (uint16_t)pver->Minor;
+			rufus_version[2] = (uint16_t)pver->Micro;
+		} else {
+			// Fallback: parse from dialog title (e.g. "Rufus RU/BY 4.12.2314")
+			GetWindowTextA(hDlg, tmp, sizeof(tmp));
+			{
+				char *ver_part = strrchr(tmp, ' ');
+				if (ver_part != NULL) {
+					ver_part++;
+					if (sscanf(ver_part, "%hu.%hu.%hu", &rufus_version[0], &rufus_version[1], &rufus_version[2]) != 3) {
+						rufus_version[0] = 4;
+						rufus_version[1] = 12;
+						rufus_version[2] = 0;
+					}
+				}
 			}
 		}
 	}

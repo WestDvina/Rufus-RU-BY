@@ -342,6 +342,7 @@ out:
 }
 
 // Download and validate a signed file. The file must have a corresponding '.sig' on the server.
+// RU/BY: signature check disabled - download file without .sig validation.
 DWORD DownloadSignedFile(const char* url, const char* file, HWND hProgressDialog, BOOL bPromptOnError)
 {
 	char* url_sig = NULL;
@@ -352,6 +353,7 @@ DWORD DownloadSignedFile(const char* url, const char* file, HWND hProgressDialog
 
 	assert(url != NULL);
 
+#if !defined(RUFUS_RU_BY)
 	url_sig = malloc(strlen(url) + 5);
 	if (url_sig == NULL) {
 		uprintf("Could not allocate signature URL");
@@ -359,10 +361,13 @@ DWORD DownloadSignedFile(const char* url, const char* file, HWND hProgressDialog
 	}
 	strcpy(url_sig, url);
 	strcat(url_sig, ".sig");
+#endif
 
 	buf_len = (DWORD)DownloadToFileOrBuffer(url, NULL, &buf, hProgressDialog, FALSE);
 	if (buf_len == 0)
 		goto out;
+
+#if !defined(RUFUS_RU_BY)
 	sig_len = (DWORD)DownloadToFileOrBuffer(url_sig, NULL, &sig, NULL, FALSE);
 	if ((sig_len != RSA_SIGNATURE_SIZE) || (!ValidateOpensslSignature(buf, buf_len, sig, sig_len))) {
 		uprintf("FATAL: Download signature is invalid ✗");
@@ -374,6 +379,7 @@ DWORD DownloadSignedFile(const char* url, const char* file, HWND hProgressDialog
 	}
 
 	uprintf("Download signature is valid ✓");
+#endif
 	DownloadStatus = 206;	// Partial content
 	hFile = CreateFileU(file, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE) {
@@ -528,7 +534,11 @@ static DWORD WINAPI CheckForUpdatesThread(LPVOID param)
 	static const char* channel[] = { "release", "beta", "test" };		// release channel
 	const char* accept_types[] = { "*/*\0", NULL };
 	char* buf = NULL;
-	char agent[64], hostname[64], urlpath[128], sigpath[256];
+	char agent[64], hostname[64], urlpath[128]
+#if !defined(RUFUS_RU_BY)
+		, sigpath[256]
+#endif
+		;
 	DWORD dwSize, dwDownloaded, dwTotalSize, dwStatus;
 	BYTE *sig = NULL;
 	HINTERNET hSession = NULL, hConnection = NULL, hRequest = NULL;
@@ -697,6 +707,7 @@ static DWORD WINAPI CheckForUpdatesThread(LPVOID param)
 			goto out;
 		vuprintf("Successfully downloaded version file (%d bytes)", dwTotalSize);
 
+#if !defined(RUFUS_RU_BY)
 		// Now download the signature file
 		static_sprintf(sigpath, "%s/%s.sig", server_url, urlpath);
 		dwDownloaded = (DWORD)DownloadToFileOrBuffer(sigpath, NULL, &sig, NULL, FALSE);
@@ -705,6 +716,7 @@ static DWORD WINAPI CheckForUpdatesThread(LPVOID param)
 			goto out;
 		}
 		vuprintf("Version signature is valid ✓");
+#endif
 
 		status++;
 		parse_update(buf, dwTotalSize + 1);
